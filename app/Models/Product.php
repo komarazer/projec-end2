@@ -11,36 +11,43 @@ class Product extends Model
     use CrudTrait;
     use HasFactory;
 
-    /*
-    |--------------------------------------------------------------------------
-    | GLOBAL VARIABLES
-    |--------------------------------------------------------------------------
-    */
+    protected $fillable = ['name', 'description', 'price', 'category_id', 'image'];
 
-    protected $table = 'products';
-    // protected $primaryKey = 'id';
-    // public $timestamps = false;
-    protected $guarded = ['id'];
-    // protected $fillable = [];
-    // protected $hidden = [];
-    protected $fillable = ['name', 'description', 'price', 'stock', 'category_id'];
-    
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
+
 
     /*
     |--------------------------------------------------------------------------
     | FUNCTIONS
     |--------------------------------------------------------------------------
-    */
+    */    
+    // ฟังก์ชันสำหรับจัดการการอัปโหลดและการลบรูปภาพ
+    public function setImageAttribute($value)
+    {
+        $attribute_name = "image";
+        $disk = "public"; // กำหนด disk ที่ใช้เก็บไฟล์
+        $destination_path = "uploads/products"; // โฟลเดอร์ที่เก็บไฟล์
+
+        // ตรวจสอบและลบไฟล์เก่าถ้ามี
+        if ($this->{$attribute_name}) {
+            \Storage::disk($disk)->delete($this->{$attribute_name});
+        }
+
+        // อัปโหลดไฟล์ใหม่ถ้ามีการอัปโหลด
+        if (request()->hasFile($attribute_name)) {
+            $this->attributes[$attribute_name] = request()->file($attribute_name)->store($destination_path, $disk);
+        }
+    }
 
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
     |--------------------------------------------------------------------------
     */
+    
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     /*
     |--------------------------------------------------------------------------
